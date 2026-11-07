@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- DRAFT. Star-Centric Systems roof page, built by the Claude Code lane on 6 November 2026 from Hermes's brief (sha256-16 5f2af24a30702792). Wording not yet ruled by Claude Science; the site owner ruled on 7 November 2026 that the page carries no copyright or name line (attribution is reached through the DOI, ORCID and GitHub records); the final word is pending. Nothing on this page is published until both have happened. -->
+<!-- DRAFT. Star-Centric Systems roof page, built by the Claude Code lane on 6 November 2026 from Hermes's brief (sha256-16 5f2af24a30702792). Wording ruled by Claude Science on 7 November 2026 (rulings file sha256-16 67df68c66f8c579e) and applied; the site owner ruled on 7 November 2026 that the page carries no copyright or name line (attribution is reached through the DOI, ORCID and GitHub records); the final word is pending. Nothing on this page is published until the final word is given. -->
 <html lang="en">
 <head>
 <meta charset="utf-8">
@@ -121,7 +121,7 @@ footer.site nav a{color:var(--fg)}
 
 <section id="roof">
   <h2>The roof</h2>
-  <p class="lede">Star-Centric Systems is the name over the family. The Intellectual Resistance is the umbrella over the frameworks; this roof names the frameworks, the instruments, and the record together. The roof is not a legal entity, and the name itself sells nothing; the sites under it say what they are. The companies under the roof keep their own names, and the repositories named on this page live in the IT Help San Diego Inc. organization on GitHub. Under it stand one keystone, six method pillars, four instruments, and the sites that carry them. Each published part keeps its own repository and record, named where it appears below.</p>
+  <p class="lede">Star-Centric Systems is the name over the family. The Intellectual Resistance is the umbrella over the frameworks; this roof names the frameworks, the instruments, and the record together. The roof is not a legal entity, and the name itself sells nothing; the sites under it say what they are. The companies under the roof keep their own names, and the repositories named on this page live in the IT Help San Diego Inc. organization on GitHub. Under it stand one keystone, six method pillars, four instruments, and the sites that carry them. Each part is named below with its repository, where one exists, and how far its record goes.</p>
   <p>This page is a map. It gives each part one line, says how far the public record carries it, and points at that record. Where there is no record yet, it says so.</p>
   <details class="sources">
     <summary>Sources for this section</summary>
@@ -134,14 +134,14 @@ footer.site nav a{color:var(--fg)}
 
 <section id="keystone">
   <h2>The keystone: Star-Centric Transport</h2>
-  <p class="lede">Star-Centric Transport is the keystone this roof is named for. On the public record it carries the verify-before-you-advance discipline of the Verification Principle into data pipelines: a chunk counts as progress only while a verifier can still recover its center. The roof's aim is wider. It is to carry a verified signal intact through every hop that can distort it: a carrier, an observer, an institution, a machine, a civilization, and time.</p>
+  <p class="lede">Star-Centric Transport is the keystone this roof is named for. On the public record it carries the verify-before-you-advance discipline of the Verification Principle into data pipelines: a chunk counts as progress only while a verifier can still recover its center. The roof's own aim is wider, and this page states it rather than cites it. The aim is to carry a verified signal intact through every hop that can distort it: a carrier, an observer, an institution, a machine, a civilization, and time.</p>
   <p>The unit it carries is the packet.</p>
   <p class="fbox">P = &#10216;D, C, L&#10217;</p>
   <p class="gloss">D is the payload. C is the carrier-color tags that rode along with it. L is a signed, append-only log of every hop.</p>
-  <p>The rule is checked at every checkpoint. What arrives is the center deformed by its context. The verifier estimates the center and lets the chunk advance only while that estimate stays inside the tolerance band.</p>
-  <p class="fbox">x<sub>i</sub> = f(c<sub>i</sub>, k<sub>i</sub>) &nbsp;&middot;&nbsp; advance iff &#8214;&#265;<sub>i</sub> &minus; c<sub>i</sub>&#8214; &le; &tau;</p>
+  <p>The rule is checked at every checkpoint. What arrives is the center deformed by its context. The verifier estimates the center, conditioned on the carrier tags C, and lets the chunk advance only while that estimate stays inside the tolerance band.</p>
+  <p class="fbox">x<sub>i</sub> = f(c<sub>i</sub>, k<sub>i</sub>) &nbsp;&middot;&nbsp; advance iff &#8214;&#265;<sub>i,C</sub> &minus; c<sub>i</sub>&#8214; &le; &tau;</p>
   <p class="gloss">Outside the band the chunk is slowed, quarantined, or flagged. It is not counted as progress.</p>
-  <p>The visible hand of logic: every hop leaves a record a stranger can replay, so finding where a presupposition entered is a replayable trace, not a forensic guess.</p>
+  <p>Every hop leaves a record a stranger can replay, so where a presupposition entered is found by replay, not by forensic guess.</p>
   <p><span class="status model">Proposal</span><br>On the public record Star-Centric Transport is a design proposal with a worked formalism. It is not a deployed protocol with benchmarks.</p>
   <details class="sources">
     <summary>Sources for this section</summary>
@@ -157,7 +157,7 @@ footer.site nav a{color:var(--fg)}
   <p>Each pillar is stated in one line, with the status the public record gives it. The status is load-bearing. It says how far the claim has been carried, and no further. Four of the six have repositories reserved under their names; on 6 November 2026 each held a title and no content, so those links point at a name, not at work. The Tetrasemaphore and the Owl Semaphore have repositories that hold their releases, and NerveOS has none.</p>
   <div class="grid">
     <article class="card">
-      <h3>Verification Principle</h3>
+      <h3>The Verification Principle</h3>
       <span class="status">Proven (theorem)</span>
       <p>A belief pinned at certainty or impossibility cannot learn. If the prior is exactly 0 or exactly 1, Bayes' rule returns it unchanged.</p>
       <p class="fbox">P(E) &gt; 0, P(H) &isin; {0, 1} &rArr; P(H | E) = P(H)</p>
@@ -172,26 +172,27 @@ footer.site nav a{color:var(--fg)}
       <p class="src"><a href="https://intellectualresistance.com/#carrier-color">intellectualresistance.com/#carrier-color <span aria-hidden="true">&#8599;</span></a> <span aria-hidden="true">&middot;</span> repository <a href="https://github.com/IT-Help-San-Diego/carrier-color-theory">carrier-color-theory, reserved <span aria-hidden="true">&#8599;</span></a></p>
     </article>
     <article class="card">
-      <h3>Owl Semaphore, succeeded by the Tetrasemaphore</h3>
+      <h3>Owl Semaphore, continued as the Tetrasemaphore</h3>
       <span class="status">Algebra proven</span> <span class="status open">Utility: open study</span>
       <p>Four semaphores that mark how a piece of work stands: NORMATIVE, NON-NORMATIVE, METACOGNITIVE or CRITICAL. They are the four moves of the Klein four-group V<sub>4</sub>, machine-checked in Lean.</p>
       <p>The Owl Semaphore was the earlier form; its latest version, v3.0.1, is dated 25 July 2026. The Tetrasemaphore 1.0.0 (22 October 2026) continues it, and the Zenodo records link the two through their concept DOIs. Whether the semaphores help people think about their thinking is the open question.</p>
-      <p class="src"><a href="https://tetrasemaphore.systems/">tetrasemaphore.systems <span aria-hidden="true">&#8599;</span></a> <span aria-hidden="true">&middot;</span> <a href="https://intellectualresistance.com/#tetrasemaphore">intellectualresistance.com/#tetrasemaphore <span aria-hidden="true">&#8599;</span></a> <span aria-hidden="true">&middot;</span> <a href="https://doi.org/10.5281/zenodo.23575816">doi:10.5281/zenodo.23575816 <span aria-hidden="true">&#8599;</span></a> <span aria-hidden="true">&middot;</span> <a href="https://doi.org/10.5281/zenodo.21524422">doi:10.5281/zenodo.21524422 <span aria-hidden="true">&#8599;</span></a> <span aria-hidden="true">&middot;</span> repository <a href="https://github.com/IT-Help-San-Diego/tetrasemaphore">tetrasemaphore <span aria-hidden="true">&#8599;</span></a> <span aria-hidden="true">&middot;</span> repository <a href="https://github.com/IT-Help-San-Diego/owl-semaphore">owl-semaphore <span aria-hidden="true">&#8599;</span></a></p>
+      <p class="src"><a href="https://tetrasemaphore.systems/">tetrasemaphore.systems <span aria-hidden="true">&#8599;</span></a> <span aria-hidden="true">&middot;</span> <a href="https://intellectualresistance.com/#tetrasemaphore">intellectualresistance.com/#tetrasemaphore <span aria-hidden="true">&#8599;</span></a> <span aria-hidden="true">&middot;</span> Tetrasemaphore <a href="https://doi.org/10.5281/zenodo.23575814">doi:10.5281/zenodo.23575814 (concept) <span aria-hidden="true">&#8599;</span></a> and <a href="https://doi.org/10.5281/zenodo.23575816">doi:10.5281/zenodo.23575816 (1.0.0) <span aria-hidden="true">&#8599;</span></a> <span aria-hidden="true">&middot;</span> Owl Semaphore <a href="https://doi.org/10.5281/zenodo.19473697">doi:10.5281/zenodo.19473697 (concept) <span aria-hidden="true">&#8599;</span></a> and <a href="https://doi.org/10.5281/zenodo.21524422">doi:10.5281/zenodo.21524422 (v3.0.1) <span aria-hidden="true">&#8599;</span></a> <span aria-hidden="true">&middot;</span> repository <a href="https://github.com/IT-Help-San-Diego/tetrasemaphore">tetrasemaphore <span aria-hidden="true">&#8599;</span></a> <span aria-hidden="true">&middot;</span> repository <a href="https://github.com/IT-Help-San-Diego/owl-semaphore">owl-semaphore <span aria-hidden="true">&#8599;</span></a> <span aria-hidden="true">&middot;</span> Lean proof <a href="https://github.com/IT-Help-San-Diego/tetrasemaphore/blob/v1.0.0/proofs/TetrasemaphoreAlgebra.lean">proofs/TetrasemaphoreAlgebra.lean at v1.0.0 <span aria-hidden="true">&#8599;</span></a></p>
     </article>
     <article class="card">
-      <h3>Open Epistemic Packet</h3>
+      <h3>Epistemic Packet</h3>
       <span class="status model">Proposal</span>
       <p>The epistemic packet is the unit Star-Centric Transport carries: payload, carrier-color tags, and lineage log, <code>P = &#10216;D, C, L&#10217;</code>.</p>
-      <p>It is set out as part of Star-Centric Transport on intellectualresistance.com. As a published format of its own it has a repository reserved and no content yet.</p>
+      <p>The packet is defined inside Star-Centric Transport on intellectualresistance.com; it is not published as a format of its own. The repository reserved under the name open-epistemic-packet holds no content yet.</p>
       <p class="src"><a href="https://intellectualresistance.com/#transport">intellectualresistance.com/#transport <span aria-hidden="true">&#8599;</span></a> <span aria-hidden="true">&middot;</span> repository <a href="https://github.com/IT-Help-San-Diego/open-epistemic-packet">open-epistemic-packet, reserved <span aria-hidden="true">&#8599;</span></a></p>
     </article>
     <article class="card">
       <h3>NerveOS</h3>
-      <span class="status none">No public record</span>
-      <p>Named under the roof. It has no published record yet, so this page gives it a name and no claim.</p>
+      <span class="status none">No public record beyond a registered domain</span>
+      <p>Named under the roof. The domain nerveos.systems was registered on 23 August 2026 and is delegated to name servers; it has no address record and serves no page. Beyond that there is no public record, so this page gives it a name and no claim.</p>
+      <p class="src">Registration and delegation of nerveos.systems: <a href="https://lookup.icann.org/en/lookup?name=nerveos.systems">ICANN lookup <span aria-hidden="true">&#8599;</span></a> and the DNS, read on 7 November 2026.</p>
     </article>
     <article class="card">
-      <h3>Societal Control Levers</h3>
+      <h3>Candidate Societal Control Levers</h3>
       <span class="status open">Candidate variables</span>
       <p>Five variables that recur wherever coordination happens at scale: verification capacity, carrier color, reasoning persistence, shared verification space, and recursive correction capacity.</p>
       <p>They are candidates, not demonstrated causes. No causality has been established and no dominance proven.</p>
@@ -226,7 +227,7 @@ footer.site nav a{color:var(--fg)}
     </article>
     <article class="card">
       <h3>Organic Computer</h3>
-      <span class="status">Shipped</span> <span class="status open">Datasheet, Rev. C</span>
+      <span class="status">Published</span> <span class="status open">Datasheet, Rev. C</span>
       <p>The human mind written as a datasheet, each figure sourced. The organic module is where judgment lives, and the machine is its instrument.</p>
       <p class="src"><a href="https://organiccomputer.me/">organiccomputer.me <span aria-hidden="true">&#8599;</span></a> <span aria-hidden="true">&middot;</span> repository <a href="https://github.com/IT-Help-San-Diego/organiccomputer">organiccomputer <span aria-hidden="true">&#8599;</span></a></p>
     </article>
@@ -235,14 +236,14 @@ footer.site nav a{color:var(--fg)}
 
 <section id="record">
   <h2>The transport machinery: the record</h2>
-  <p class="lede">The record is the transport. On this roof a claim counts as carried only when it leaves a record a stranger can replay. Four pieces of machinery make the record: one is specified, three are running.</p>
+  <p class="lede">The record is the transport. On this roof a claim counts as carried only when it leaves a record a stranger can replay; Star-Centric Transport, the protocol, remains a proposal. Four pieces of machinery make the record: one is specified, three are running.</p>
   <dl class="record">
     <dt>Append-only ledger</dt>
     <dd>Specified in the packet as the lineage log L: a signed, append-only record of each hop, written once and never rewritten. A later entry can answer an earlier one, but it cannot erase it. No deployed ledger is on the public record yet.</dd>
     <dt>SHA-3 seals</dt>
     <dd>A seal is the hash of a result, taken the moment the result exists. It is tamper-evidence: it shows the result you hold is the one that was sealed, and it does not prove the measurement occurred. Calibration Scope seals every run with SHA-3 and pins every stimulus by hash. Resolution Scope seals each verdict under the scheme <code>resolution-scope-sha3-512-v5</code> and prints the seal and the scheme at the head of each report.</dd>
     <dt>Zenodo DOIs</dt>
-    <dd>Three releases carry Zenodo DOIs. Each version has its own DOI, and a concept DOI resolves to the latest version. DNS Tool: <a href="https://doi.org/10.5281/zenodo.19468134">10.5281/zenodo.19468134 <span aria-hidden="true">&#8599;</span></a>. Owl Semaphore: <a href="https://doi.org/10.5281/zenodo.21524422">10.5281/zenodo.21524422 <span aria-hidden="true">&#8599;</span></a>. Tetrasemaphore: <a href="https://doi.org/10.5281/zenodo.23575816">10.5281/zenodo.23575816 <span aria-hidden="true">&#8599;</span></a>.</dd>
+    <dd>Three works carry Zenodo DOIs. Each version has its own DOI, and a concept DOI resolves to the latest version; this page links the concept DOIs. DNS Tool: <a href="https://doi.org/10.5281/zenodo.19468134">10.5281/zenodo.19468134 <span aria-hidden="true">&#8599;</span></a> (concept DOI). Owl Semaphore: <a href="https://doi.org/10.5281/zenodo.19473697">10.5281/zenodo.19473697 <span aria-hidden="true">&#8599;</span></a> (concept DOI). Tetrasemaphore: <a href="https://doi.org/10.5281/zenodo.23575814">10.5281/zenodo.23575814 <span aria-hidden="true">&#8599;</span></a> (concept DOI).</dd>
     <dt>Internet Archive</dt>
     <dd>DNS Tool submits the URL of each public report to the Internet Archive, which keeps a record outside the family's control.</dd>
   </dl>
