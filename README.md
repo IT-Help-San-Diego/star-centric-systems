@@ -15,7 +15,7 @@
 
 ## License
 
-CC-BY-4.0 (family default; Carey's final word pending).
+The page prints no copyright, name or license line: the site owner ruled on 7 November 2026 that attribution is reached through the DOI, ORCID and GitHub records, not a footer ownership claim. No repository license file is committed yet; that choice is the owner's.
 
 ## Verify
 

@@ -191,7 +191,7 @@ class Audit(HTMLParser):
         if t == "meta":
             if "http-equiv" in a and a["http-equiv"] != "Content-Security-Policy": bad(f"{PAGE}: http-equiv other than Content-Security-Policy: {a['http-equiv']}")
             if "name" in a:
-                if a["name"] == "author": bad(f"{PAGE}: <meta name=\"author\"> is not allowed (name only in the license line)")
+                if a["name"] == "author": bad(f"{PAGE}: <meta name=\"author\"> is not allowed (the page carries no personal name)")
                 elif a["name"] == "referrer" and a.get("content") != "no-referrer": bad(f"{PAGE}: meta referrer must be no-referrer")
                 elif a["name"] not in ALLOWED_META_NAMES: bad(f"{PAGE}: unexpected meta name {a['name']!r}")
             if "property" in a and not a["property"].startswith("og:"): bad(f"{PAGE}: unexpected meta property {a['property']!r}")
@@ -239,11 +239,11 @@ if au.main_children != [("section", s) for s in SECTIONS]: bad(f"{PAGE}: <main> 
 fam = tuple(h for h in au.footer_hrefs if h in FAMILY)
 if fam != FAMILY: bad(f"{PAGE}: footer family links must be exactly {FAMILY} in order; found {fam}")
 if au.footer_hrefs.count(REPO_URL) != 1: bad(f"{PAGE}: footer must link the repository exactly once")
-if au.footer_hrefs.count(LICENSE_URL) != 1: bad(f"{PAGE}: footer must link the license exactly once")
+if au.footer_hrefs.count(LICENSE_URL) != 0: bad(f"{PAGE}: footer links the license; the site owner ruled on 7 November 2026 that the page carries no copyright, name or license line")
 if "main" not in au.ids or "family" not in au.ids: bad(f"{PAGE}: ids main and family required")
 say("OK: no forbidden elements or attributes, hrefs https/root/fragment, one canonical link, meta rules, nesting, unique ids, fragments resolve, sections and footer in order, tags balanced")
 
-# 4. Text rules on the unescaped text: em dashes, code points, local paths, placeholders, the author's name once in the license line.
+# 4. Text rules on the unescaped text: em dashes, code points, local paths, placeholders, no personal name anywhere (site owner's ruling, 7 November 2026).
 txt = html.unescape(raw)
 em = sum(txt.count(ch) for ch in EM_DASHES)
 if em: bad(f"{PAGE}: {em} em dash(es) present (U+2014/U+2015/U+2E3A/U+2E3B, raw or as entities)")
@@ -261,10 +261,10 @@ body_text = re.sub(r"<[^>]+>", " ", re.sub(r"<!--.*?-->", " ", txt, flags=re.S))
 if re.search(r"\b(?:TODO|TK|TBD|FIXME|XXX|PLACEHOLDER)\b", body_text) or re.search(r"lorem ipsum", body_text, re.I): bad(f"{PAGE}: placeholder text present")
 norm = re.sub(r"[\s ]+", " ", re.sub("[" + chr(0xAD) + chr(0x200B) + "]", "", txt))
 foot = re.search(r"<footer\b.*?</footer>", norm, re.S)
-name_hits = [m.start() for m in re.finditer(r"Carey James Balboa", norm)]
-if len(name_hits) != 1 or norm.count("Balboa") != 1 or not foot or not (foot.start() < name_hits[0] < foot.end()):
-    bad(f"{PAGE}: the author's name must appear exactly once, inside the footer license line (full name {len(name_hits)}, surname {norm.count('Balboa')})")
-say(f"OK: em dashes = {em}; en dashes = {en} (informational); code points assigned and printable; no local paths or placeholders; author name only in the license line")
+name_hits = re.findall(r"\b(?:Carey|Balboa)\b", norm)
+if name_hits or re.search(r"(?i)\bcopyright\b", body_text) or "\u00a9" in norm:
+    bad(f"{PAGE}: the page must carry no personal name and no copyright line (site owner's ruling, 7 November 2026); found {name_hits or 'a copyright mark'}")
+say(f"OK: em dashes = {em}; en dashes = {en} (informational); code points assigned and printable; no local paths or placeholders; no personal name or copyright line")
 
 # 5. Required head metadata.
 if "<title>Star-Centric Systems</title>" not in head_txt: bad(f"{PAGE}: title must be Star-Centric Systems")
@@ -281,7 +281,7 @@ release = os.environ.get("STARCENTRIC_RELEASE") == "1"
 for marker in ("<!-- DRAFT", "LICENSE LINE PENDING"):
     if marker.lower() in raw.lower():
         if release: bad(f"{PAGE}: draft marker '{marker}' present in a release check")
-        else: say(f"NOTE: page carries the draft marker '{marker}' (wording and license line not yet final)")
+        else: say(f"NOTE: page carries the draft marker '{marker}' (wording not yet final)")
 if release and au.comments: bad(f"{PAGE}: {len(au.comments)} HTML comment(s) present in a release check (a released page carries none)")
 if "PLACEHOLDER" in raw: bad(f"{PAGE}: placeholder present")
 
