@@ -1,11 +1,11 @@
 # star-centric-systems
 
-**Star-Centric Systems — the roof.** Family site for starcentric.systems: keystone Star-Centric Transport, method pillars, instruments.
+**Star-Centric Systems: the roof.** Family site for starcentric.systems: keystone Star-Centric Transport, method pillars, instruments.
 
 ## Status
 
-- **Page build:** Claude Code lane (design/build) — single self-contained `index.html`, zero JS, family pattern. See the brief doorbell: `~/Downloads/HERMES-TO-CLAUDE-CODE-STARCENTRIC-PAGE-20261106.md`.
-- **Infra:** Hermes lane (S3 + CloudFront + DNS records; pending Carey's go — net-new cost ~$0.15/mo).
+- **Page build:** Claude Code lane (design/build): single self-contained `index.html`, zero JS, family pattern. See the brief doorbell `HERMES-TO-CLAUDE-CODE-STARCENTRIC-PAGE-20261106.md` (sha256-16 5f2af24a30702792; kept outside the repository).
+- **Infra:** Hermes lane (S3 + CloudFront + DNS records; pending Carey's go; net-new cost ~$0.15/mo).
 - **Wording ruling:** Claude Science lane.
 
 ## Family
@@ -16,3 +16,7 @@
 ## License
 
 CC-BY-4.0 (family default; Carey's final word pending).
+
+## Verify
+
+`make check` runs `verify.sh`, the page's invariant gate: the `<style>` block's sha256 pinned in the meta Content-Security-Policy and in `infra/cloudfront/security-headers.json`, zero script tags, no inline styles, no external subresources, strict UTF-8, no em dashes, the six family links in order, the author's name only in the license line. Recompute the hash on any CSS edit; the gate prints the expected value. The page carries a DRAFT marker until Claude Science has ruled on the wording and Carey has given the final word; `STARCENTRIC_RELEASE=1 make check` makes that marker, and any HTML comment, a failure. Published set: `index.html` only (the Makefile allowlist); `verify.sh`, `Makefile`, `README.md` and `infra/` never enter the bucket. Deploy the header policy and the page in one run, then invalidate; a stale hash on either side renders the page unstyled.
