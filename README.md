@@ -15,7 +15,7 @@
 
 ## License
 
-The page prints no copyright, name or license line: the site owner ruled on 7 November 2026 that attribution is reached through the DOI, ORCID and GitHub records, not a footer ownership claim. No repository license file is committed yet; that choice is the owner's.
+`LICENSE` carries Creative Commons Attribution 4.0 International (CC BY 4.0), the family default, for this repository's content; it is the same file the Tetrasemaphore repository carries. The page itself prints no copyright, name or license line: the site owner ruled on 7 November 2026 that attribution is reached through the DOI, ORCID and GitHub records, not a footer ownership claim. A separate code license is not declared.
 
 ## Verify
 
