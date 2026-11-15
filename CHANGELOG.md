@@ -2,11 +2,13 @@
 
 Housekeeping changes to starcentric.systems: changes that alter nothing a reader can read or act on. A correction to what the page says is not housekeeping; it is entered in the family corrections index, and the page carries a dated line pointing at the entry. A fact printed with its read date that is brought up to date gets a new read date and a line here. Dates are UTC.
 
-## Next deploy
+## 15 November 2026, third deploy
 
-Not housekeeping, listed here so the deploys are in one place. This heading takes its date and its commit once the deploy is measured.
+From `main` at 21c0dae. Not housekeeping, listed here so the deploys are in one place.
 
 - One sentence of the roof section was replaced, and the first line of that section's sources changed to match. The change is correction C-20261115-01 in the family corrections index, which quotes the earlier sentence and says what was wrong with it; the page carries a dated line pointing at that entry.
+- The entry went live first, at 08:14 UTC, and the page followed within a minute, so the dated line never pointed at a missing entry.
+- Measured after the deploy: the four served files equal `main` byte for byte. Only `index.html` changed, in three places: the sentence, the sources line that describes it, and the dated line with its link. The style block and the response headers are unchanged.
 
 ## 15 November 2026, repository only
 
