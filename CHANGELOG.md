@@ -1,6 +1,12 @@
 # Changelog
 
-Housekeeping changes to starcentric.systems: changes that alter nothing a reader can read or act on. A change to what the page says is not housekeeping; it is dated on the page itself. Dates are UTC.
+Housekeeping changes to starcentric.systems: changes that alter nothing a reader can read or act on. A change to what the page says is not housekeeping; it is entered in the family corrections index, and the page carries a dated line pointing at the entry. Dates are UTC.
+
+## 15 November 2026, third deploy
+
+Not housekeeping, listed here so the deploys are in one place.
+
+- One sentence of the roof section was replaced. The change is correction C-20261115-01 in the family corrections index, which quotes the earlier sentence and says what was wrong with it; the page carries a dated line pointing at that entry.
 
 ## 15 November 2026, repository only
 

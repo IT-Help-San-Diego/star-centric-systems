@@ -6,7 +6,7 @@
 
 - **Page build:** Claude Code lane (design and build): a single self-contained `index.html`, zero JavaScript, the family pattern.
 - **Infrastructure:** Hermes lane (private S3 bucket, CloudFront with the response-headers policy in `infra/cloudfront/`, DNS).
-- **Wording:** ruled by the Claude Science lane and settled by the site owner. The page was first published on 15 November 2026 (UTC); a later change to what it says is dated on the page.
+- **Wording:** ruled by the Claude Science lane and settled by the site owner. The page was first published on 15 November 2026 (UTC); a later change to what it says is entered in the family corrections index, with a dated line on the page pointing at the entry.
 - **Review:** prepared through human-led, multi-agent review; what each lane did is recorded in the pull request that brought the page in.
 
 ## Family
