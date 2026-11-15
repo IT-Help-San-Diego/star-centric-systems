@@ -23,10 +23,16 @@ POLICY_NAME = "starcentric-security-headers"
 CANONICAL = "https://starcentric.systems/"
 REPO_URL = "https://github.com/IT-Help-San-Diego/star-centric-systems"
 LICENSE_URL = "https://creativecommons.org/licenses/by/4.0/"
-CSP_TEMPLATE = ("default-src 'none'; base-uri 'none'; object-src 'none'; frame-ancestors 'none'; form-action 'none'; "
+# The response header carries the whole policy. The meta element carries the same policy minus the directives a browser
+# ignores when a policy arrives in a meta element (frame-ancestors, report-uri, sandbox). An inert directive would claim a
+# defence the meta policy does not give, and it logs a console warning on every load. frame-ancestors works in the header
+# only, so it stays there and must not be added back to the meta policy.
+HEADER_CSP_TEMPLATE = ("default-src 'none'; base-uri 'none'; object-src 'none'; frame-ancestors 'none'; form-action 'none'; "
                 "worker-src 'none'; script-src 'none'; img-src 'self' data:; font-src 'self'; style-src 'self' '{hash}'; "
                 "connect-src 'self'; media-src 'self'; manifest-src 'self'; require-trusted-types-for 'script'; "
                 "trusted-types 'none'; upgrade-insecure-requests")
+META_IGNORED = ("frame-ancestors", "report-uri", "sandbox")
+META_CSP_TEMPLATE = HEADER_CSP_TEMPLATE.replace("frame-ancestors 'none'; ", "")
 FAMILY = ("https://it-help.tech/", "https://intellectualresistance.com/", "https://calibrationscope.com/",
           "https://resolutionscope.com/", "https://tetrasemaphore.systems/", "https://organiccomputer.me/")
 SECTIONS = ("roof", "keystone", "method", "instruments", "record")
@@ -129,7 +135,9 @@ if styles:
     if len(mcs) != 1: bad(f"{PAGE}: exactly one meta CSP required, found {len(mcs)}")
     else:
         csp = mcs[0]
-        if csp != CSP_TEMPLATE.format(hash=hp): bad(f"{PAGE}: meta CSP is not the family policy with the style hash '{hp}'")
+        if csp != META_CSP_TEMPLATE.format(hash=hp): bad(f"{PAGE}: meta CSP is not the family policy, minus the directives a meta element cannot deliver, with the style hash '{hp}'")
+        for d in META_IGNORED:
+            if d in csp: bad(f"{PAGE}: meta CSP carries {d}, which browsers ignore in a meta element; it belongs in the response header only")
         if "PLACEHOLDER" in csp: bad(f"{PAGE}: placeholder hash still in meta CSP")
     pos_csp = raw.find('<meta http-equiv="Content-Security-Policy"')
     if pos_csp < 0 or pos_csp > raw.find("<style>"): bad(f"{PAGE}: the meta CSP must precede the <style> block")
@@ -142,7 +150,7 @@ if styles:
             if len(comment) > 128: bad(f"{POLICY}: Comment is {len(comment)} characters; CloudFront allows 128")
             if any(ch in EM_DASHES for ch in json.dumps(cfg, ensure_ascii=False) + comment): bad(f"{POLICY}: em dash present")
             expected = json.loads(json.dumps(EXPECTED_POLICY))
-            expected["SecurityHeadersConfig"]["ContentSecurityPolicy"]["ContentSecurityPolicy"] = CSP_TEMPLATE.format(hash=hp)
+            expected["SecurityHeadersConfig"]["ContentSecurityPolicy"]["ContentSecurityPolicy"] = HEADER_CSP_TEMPLATE.format(hash=hp)
             if cfg.get("Name") != POLICY_NAME: bad(f"{POLICY}: Name must be {POLICY_NAME}")
             if cfg != expected:
                 for k in sorted(set(cfg) | set(expected)):
@@ -298,6 +306,60 @@ for tf in tracked:
         body = open(tf, encoding="utf-8", errors="replace").read()
         if home_pat in body or tilde_pat in body or ptmp_pat in body: bad(f"{tf}: leaked local filesystem path")
 say("OK: git tracked-files privacy gate clean; no local paths in tracked text files")
+
+# 8. The other published files. 404.html carries the byte-identical style block and the same meta policy; robots.txt and security.txt are well formed.
+NOT_FOUND = "404.html"
+ROBOTS = "robots.txt"
+SECURITY = ".well-known/security.txt"
+if not os.path.exists(NOT_FOUND): bad(f"{NOT_FOUND}: missing")
+else:
+    nb = open(NOT_FOUND, "rb").read()
+    try:
+        nraw = nb.decode("utf-8", errors="strict")
+    except UnicodeDecodeError as e:
+        bad(f"{NOT_FOUND}: not strict UTF-8: {e}"); nraw = nb.decode("utf-8", errors="replace")
+    if nb.startswith(b"\xef\xbb\xbf") or b"\r" in nb or b"\x00" in nb: bad(f"{NOT_FOUND}: BOM, carriage return or NUL present")
+    if not nraw.startswith("<!DOCTYPE html>") or '<html lang="en">' not in nraw: bad(f"{NOT_FOUND}: doctype or lang missing")
+    nstyles = re.findall(r"<style>(.*?)</style>", nraw, re.S)
+    if re.findall(r"<style\b[^>]*>", nraw, re.I) != ["<style>"] or len(nstyles) != 1: bad(f"{NOT_FOUND}: exactly one literal <style> block required")
+    elif styles and nstyles[0] != styles[0]: bad(f"{NOT_FOUND}: its <style> block must be byte-identical to {PAGE}'s, because one hash in the header policy serves both pages")
+    nmcs = re.findall(r'<meta http-equiv="Content-Security-Policy" content="([^"]*)"', nraw)
+    if len(nmcs) != 1 or (hp and nmcs[0] != META_CSP_TEMPLATE.format(hash=hp)): bad(f"{NOT_FOUND}: meta CSP is not the meta policy with the style hash '{hp}'")
+    if nraw.find('<meta http-equiv="Content-Security-Policy"') < 0 or nraw.find('<meta http-equiv="Content-Security-Policy"') > nraw.find("<style>"): bad(f"{NOT_FOUND}: the meta CSP must precede the <style> block")
+    if re.search(r"<script\b", nraw, re.I): bad(f"{NOT_FOUND}: <script present")
+    PAGE_INDEX, PAGE = PAGE, NOT_FOUND
+    au2 = Audit(); au2.feed(nraw); au2.close()
+    if au2.stack: bad(f"{NOT_FOUND}: unclosed tags at end: {au2.stack}")
+    if au2.h1 != 1: bad(f"{NOT_FOUND}: exactly one <h1> required, found {au2.h1}")
+    if au2.links != 1: bad(f"{NOT_FOUND}: exactly one <link> (canonical) required, found {au2.links}")
+    for h in au2.hrefs:
+        if h.startswith("#") and h[1:] not in au2.ids: bad(f"{NOT_FOUND}: fragment link {h} resolves to no id")
+    if au2.main_children != [("section", "not-found")]: bad(f"{NOT_FOUND}: <main> must contain exactly the section not-found; found {au2.main_children}")
+    if tuple(h for h in au2.footer_hrefs if h in FAMILY) != FAMILY: bad(f"{NOT_FOUND}: footer family links must be exactly {FAMILY} in order")
+    if au2.comments: bad(f"{NOT_FOUND}: {len(au2.comments)} HTML comment(s) present (the served page carries none)")
+    ntxt = html.unescape(nraw)
+    if any(ntxt.count(ch) for ch in EM_DASHES): bad(f"{NOT_FOUND}: em dash present")
+    for ch in sorted(set(ntxt)):
+        if ord(ch) > 127 or (ord(ch) < 32 and ch not in "\n\t"):
+            if unicodedata.name(ch, None) is None or unicodedata.category(ch) in ("Cn", "Co", "Cs", "Cf", "Zl", "Zp", "Cc"): bad(f"{NOT_FOUND}: forbidden code point U+{ord(ch):04X}")
+    if home_pat in ntxt or ptmp_pat in ntxt or tilde_pat in ntxt: bad(f"{NOT_FOUND}: leaked local filesystem path")
+    nbody = re.sub(r"<[^>]+>", " ", ntxt)
+    if re.findall(r"\b(?:Carey|Balboa)\b", ntxt) or re.search(r"(?i)\bcopyright\b", nbody) or "©" in ntxt: bad(f"{NOT_FOUND}: the page must carry no personal name and no copyright line")
+    PAGE = PAGE_INDEX
+expires = "missing"
+if not os.path.exists(ROBOTS): bad(f"{ROBOTS}: missing")
+else:
+    rlines = [l for l in open(ROBOTS, encoding="utf-8").read().splitlines() if l.strip() and not l.startswith("#")]
+    if "User-agent: *" not in rlines or any(not re.match(r"^(User-agent|Allow|Disallow|Sitemap): \S+$", l) for l in rlines):
+        bad(f"{ROBOTS}: must be a plain robots file with a 'User-agent: *' record and only User-agent, Allow, Disallow or Sitemap lines")
+if not os.path.exists(SECURITY): bad(f"{SECURITY}: missing")
+else:
+    fields = dict(l.split(": ", 1) for l in open(SECURITY, encoding="utf-8").read().splitlines() if ": " in l and not l.startswith("#"))
+    expires = fields.get("Expires", "missing")
+    if not fields.get("Contact", "").startswith(("mailto:", "https://")): bad(f"{SECURITY}: Contact must be a mailto: or https: address")
+    if not re.match(r"^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}Z$", expires): bad(f"{SECURITY}: Expires must be an ISO 8601 UTC timestamp")
+    if fields.get("Canonical") != CANONICAL + SECURITY: bad(f"{SECURITY}: Canonical must be {CANONICAL + SECURITY}")
+say(f"OK: {NOT_FOUND} carries the same style block and meta policy as {PAGE}; {ROBOTS} and {SECURITY} well formed (security.txt expires {expires})")
 
 if FAIL == 0:
     say("verify.sh: ALL CHECKS PASS"); sys.exit(0)

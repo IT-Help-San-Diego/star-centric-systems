@@ -1,0 +1,4 @@
+Contact: mailto:security@it-help.tech
+Expires: 2027-11-01T00:00:00Z
+Preferred-Languages: en
+Canonical: https://starcentric.systems/.well-known/security.txt
