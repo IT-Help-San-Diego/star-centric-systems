@@ -2,12 +2,13 @@
 # verify.sh: starcentric.systems static-site invariant gate. Exits non-zero on any failure.
 # Modelled on the tetrasemaphore.systems gate (site/verify.sh), with the attribute, nesting and metadata
 # checks done by an HTML parser rather than by regexes. Offline and deterministic: it reads the repository
-# only. Set STARCENTRIC_RELEASE=1 to make the DRAFT marker, and any HTML comment, a failure.
+# only. Set STARCENTRIC_RELEASE=1 to make the DRAFT marker, and any HTML comment, a failure. In release mode the gate
+# also reads the clock once, to refuse a security.txt whose Expires date has passed.
 set -euo pipefail
 cd "$(dirname "$(readlink -f "$0")")"
 
 python3 -I - <<'PY'
-import base64, hashlib, html, json, os, re, subprocess, sys, unicodedata
+import base64, datetime, hashlib, html, json, os, re, subprocess, sys, unicodedata
 from html.parser import HTMLParser
 
 FAIL = 0
@@ -25,7 +26,7 @@ REPO_URL = "https://github.com/IT-Help-San-Diego/star-centric-systems"
 LICENSE_URL = "https://creativecommons.org/licenses/by/4.0/"
 # The response header carries the whole policy. The meta element carries the same policy minus the directives a browser
 # ignores when a policy arrives in a meta element (frame-ancestors, report-uri, sandbox). An inert directive would claim a
-# defence the meta policy does not give, and it logs a console warning on every load. frame-ancestors works in the header
+# defence the meta policy does not give, and it logs a console message on every load. frame-ancestors works in the header
 # only, so it stays there and must not be added back to the meta policy.
 HEADER_CSP_TEMPLATE = ("default-src 'none'; base-uri 'none'; object-src 'none'; frame-ancestors 'none'; form-action 'none'; "
                 "worker-src 'none'; script-src 'none'; img-src 'self' data:; font-src 'self'; style-src 'self' '{hash}'; "
@@ -136,8 +137,6 @@ if styles:
     else:
         csp = mcs[0]
         if csp != META_CSP_TEMPLATE.format(hash=hp): bad(f"{PAGE}: meta CSP is not the family policy, minus the directives a meta element cannot deliver, with the style hash '{hp}'")
-        for d in META_IGNORED:
-            if d in csp: bad(f"{PAGE}: meta CSP carries {d}, which browsers ignore in a meta element; it belongs in the response header only")
         if "PLACEHOLDER" in csp: bad(f"{PAGE}: placeholder hash still in meta CSP")
     pos_csp = raw.find('<meta http-equiv="Content-Security-Policy"')
     if pos_csp < 0 or pos_csp > raw.find("<style>"): bad(f"{PAGE}: the meta CSP must precede the <style> block")
@@ -173,7 +172,7 @@ ALLOWED_META_NAMES = {"viewport", "description", "referrer", "color-scheme", "tw
 class Audit(HTMLParser):
     def __init__(self):
         super().__init__(convert_charrefs=True)
-        self.stack = []; self.ids = []; self.hrefs = []; self.h1 = 0; self.links = 0; self.comments = []
+        self.stack = []; self.ids = []; self.hrefs = []; self.h1 = 0; self.links = 0; self.comments = []; self.csp_metas = []
         self.main_children = []; self.footer_hrefs = []; self.in_footer = False; self.details_first = {}
     def parent(self): return self.stack[-1] if self.stack else None
     def handle_starttag(self, t, attrs):
@@ -197,6 +196,7 @@ class Audit(HTMLParser):
             self.links += 1
             if a != {"rel": "canonical", "href": CANONICAL}: bad(f"{PAGE}: only <link rel=\"canonical\" href=\"{CANONICAL}\"> is allowed: {a}")
         if t == "meta":
+            if a.get("http-equiv", "").lower() == "content-security-policy": self.csp_metas.append(a.get("content", ""))
             if "http-equiv" in a and a["http-equiv"] != "Content-Security-Policy": bad(f"{PAGE}: http-equiv other than Content-Security-Policy: {a['http-equiv']}")
             if "name" in a:
                 if a["name"] == "author": bad(f"{PAGE}: <meta name=\"author\"> is not allowed (the page carries no personal name)")
@@ -235,9 +235,19 @@ class Audit(HTMLParser):
     def handle_decl(self, decl):
         if decl != "DOCTYPE html": bad(f"{PAGE}: unexpected declaration {decl!r}")
     def handle_pi(self, data): bad(f"{PAGE}: processing instruction present")
+    def unknown_decl(self, data): bad(f"{PAGE}: marked section present; a browser reads it as a comment")
+
+def check_meta_policies(page, metas):
+    """Exactly one meta policy, however the element is spelled, and none of the directives a meta element cannot deliver."""
+    if hp and metas != [META_CSP_TEMPLATE.format(hash=hp)]:
+        bad(f"{page}: the parser finds {len(metas)} meta policy element(s); exactly one is allowed, the meta policy with the style hash '{hp}'")
+    for c in metas:
+        for d in META_IGNORED:
+            if d in c: bad(f"{page}: a meta policy carries {d}, which browsers ignore in a meta element; it belongs in the response header only")
 
 if re.search(r"<script\b", raw, re.I): bad(f"{PAGE}: <script present anywhere in the file, comments included")
 au = Audit(); au.feed(raw); au.close()
+check_meta_policies(PAGE, au.csp_metas)
 if au.stack: bad(f"{PAGE}: unclosed tags at end: {au.stack}")
 if au.h1 != 1: bad(f"{PAGE}: exactly one <h1> required, found {au.h1}")
 if au.links != 1: bad(f"{PAGE}: exactly one <link> (canonical) required, found {au.links}")
@@ -297,15 +307,18 @@ if "PLACEHOLDER" in raw: bad(f"{PAGE}: placeholder present")
 try:
     tracked = subprocess.check_output(["git", "ls-files"], text=True, stderr=subprocess.DEVNULL).splitlines()
 except Exception:
-    tracked = []
+    tracked = None
 FORBIDDEN_GIT = ("research artifacts/", "private_research_vault/", "wispr", "transcript", ".jsonl", ".sqlite", "doorbell", "handoff", ".ds_store", ".secrets", ".env")
-for tf in tracked:
-    tfl = tf.lower()
-    if any(tok in tfl for tok in FORBIDDEN_GIT): bad(f"forbidden private/dump path tracked in git: {tf}")
-    if tf.endswith((".md", ".sh", ".json", ".html", "Makefile", ".txt")) and os.path.exists(tf):
-        body = open(tf, encoding="utf-8", errors="replace").read()
-        if home_pat in body or tilde_pat in body or ptmp_pat in body: bad(f"{tf}: leaked local filesystem path")
-say("OK: git tracked-files privacy gate clean; no local paths in tracked text files")
+if tracked is None:
+    say("NOTE: not a git checkout; the tracked-files privacy gate did not run here. It runs in the repository; the four published files are checked for local paths below either way.")
+else:
+    for tf in tracked:
+        tfl = tf.lower()
+        if any(tok in tfl for tok in FORBIDDEN_GIT): bad(f"forbidden private/dump path tracked in git: {tf}")
+        if tf.endswith((".md", ".sh", ".json", ".html", "Makefile", ".txt")) and os.path.exists(tf):
+            body = open(tf, encoding="utf-8", errors="replace").read()
+            if home_pat in body or tilde_pat in body or ptmp_pat in body: bad(f"{tf}: leaked local filesystem path")
+    say("OK: git tracked-files privacy gate clean; no local paths in tracked text files")
 
 # 8. The other published files. 404.html carries the byte-identical style block and the same meta policy; robots.txt and security.txt are well formed.
 NOT_FOUND = "404.html"
@@ -345,21 +358,74 @@ else:
     if home_pat in ntxt or ptmp_pat in ntxt or tilde_pat in ntxt: bad(f"{NOT_FOUND}: leaked local filesystem path")
     nbody = re.sub(r"<[^>]+>", " ", ntxt)
     if re.findall(r"\b(?:Carey|Balboa)\b", ntxt) or re.search(r"(?i)\bcopyright\b", nbody) or "©" in ntxt: bad(f"{NOT_FOUND}: the page must carry no personal name and no copyright line")
+    if re.search(r"\b(?:TODO|TK|TBD|FIXME|XXX|PLACEHOLDER)\b", nbody) or re.search(r"lorem ipsum", nbody, re.I): bad(f"{NOT_FOUND}: placeholder text present")
+    nhead = re.search(r"<head>(.*?)</head>", nraw, re.S)
+    nfirst = re.search(r"<meta\b[^>]*>", nhead.group(1)) if nhead else None
+    if not nfirst or nfirst.group(0) != '<meta charset="utf-8">' or nb.find(b'<meta charset="utf-8">') > 1024: bad(f"{NOT_FOUND}: first <meta> in head must be the charset meta, inside the first 1024 bytes")
+    if not nhead or not re.search(r"<title>[^<]+</title>", nhead.group(1)): bad(f"{NOT_FOUND}: a non-empty <title> is required")
+    check_meta_policies(NOT_FOUND, au2.csp_metas)
     PAGE = PAGE_INDEX
+def read_text(path):
+    """Strict UTF-8 text of a published text file, or None after saying why not."""
+    try:
+        b = open(path, "rb").read()
+    except OSError as e:
+        bad(f"{path}: unreadable ({e.__class__.__name__})"); return None
+    try:
+        t = b.decode("utf-8", errors="strict")
+    except UnicodeDecodeError as e:
+        bad(f"{path}: not strict UTF-8: {e}"); return None
+    if b.startswith(b"\xef\xbb\xbf") or b"\r" in b or b"\x00" in b: bad(f"{path}: BOM, carriage return or NUL present")
+    if home_pat in t or ptmp_pat in t or tilde_pat in t: bad(f"{path}: leaked local filesystem path")
+    return t
+
 expires = "missing"
 if not os.path.exists(ROBOTS): bad(f"{ROBOTS}: missing")
 else:
-    rlines = [l for l in open(ROBOTS, encoding="utf-8").read().splitlines() if l.strip() and not l.startswith("#")]
-    if "User-agent: *" not in rlines or any(not re.match(r"^(User-agent|Allow|Disallow|Sitemap): \S+$", l) for l in rlines):
-        bad(f"{ROBOTS}: must be a plain robots file with a 'User-agent: *' record and only User-agent, Allow, Disallow or Sitemap lines")
+    rt = read_text(ROBOTS)
+    if rt is not None:
+        # The site owner chose on 15 November 2026 (UTC) to leave the site open to crawlers. The gate holds the file to that
+        # choice: one group, for every crawler, that allows everything. A different crawl policy is a decision; change this
+        # rule together with the file.
+        recs = []
+        for l in rt.splitlines():
+            l = l.split("#", 1)[0].strip()
+            if not l: continue
+            m = re.match(r"(?i)^(user-agent|allow|disallow|sitemap)\s*:\s*(.*)$", l)
+            if not m: bad(f"{ROBOTS}: line is not a User-agent, Allow, Disallow or Sitemap record: {l!r}"); continue
+            recs.append((m.group(1).lower(), m.group(2).strip()))
+        rules = [r for r in recs if r[0] != "sitemap"]
+        if rules not in ([("user-agent", "*"), ("allow", "/")], [("user-agent", "*"), ("disallow", "")]):
+            bad(f"{ROBOTS}: must be one group for every crawler that allows everything ('User-agent: *' then 'Allow: /'), as the site owner chose; found {rules}")
+        for k, v in recs:
+            if k == "sitemap" and not v.startswith(CANONICAL): bad(f"{ROBOTS}: a Sitemap must be an address under {CANONICAL}")
 if not os.path.exists(SECURITY): bad(f"{SECURITY}: missing")
 else:
-    fields = dict(l.split(": ", 1) for l in open(SECURITY, encoding="utf-8").read().splitlines() if ": " in l and not l.startswith("#"))
-    expires = fields.get("Expires", "missing")
-    if not fields.get("Contact", "").startswith(("mailto:", "https://")): bad(f"{SECURITY}: Contact must be a mailto: or https: address")
-    if not re.match(r"^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}Z$", expires): bad(f"{SECURITY}: Expires must be an ISO 8601 UTC timestamp")
-    if fields.get("Canonical") != CANONICAL + SECURITY: bad(f"{SECURITY}: Canonical must be {CANONICAL + SECURITY}")
-say(f"OK: {NOT_FOUND} carries the same style block and meta policy as {PAGE}; {ROBOTS} and {SECURITY} well formed (security.txt expires {expires})")
+    st = read_text(SECURITY)
+    if st is not None:
+        sfields = []
+        for l in st.splitlines():
+            if not l.strip() or l.lstrip().startswith("#"): continue
+            m = re.match(r"^([A-Za-z-]+):\s+(\S.*)$", l)
+            if not m: bad(f"{SECURITY}: line is not a 'Name: value' field: {l!r}"); continue
+            sfields.append((m.group(1).lower(), m.group(2).strip()))
+        contacts = [v for k, v in sfields if k == "contact"]
+        exps = [v for k, v in sfields if k == "expires"]
+        canons = [v for k, v in sfields if k == "canonical"]
+        if not contacts or any(not re.match(r"^(mailto:[^@\s]+@[^@\s]+|https://\S+|tel:\S+)$", c) for c in contacts):
+            bad(f"{SECURITY}: at least one Contact is required and every Contact must be a mailto:, https: or tel: address")
+        if len(exps) != 1: bad(f"{SECURITY}: exactly one Expires field is required, found {len(exps)}")
+        else:
+            expires = exps[0]
+            try:
+                when = datetime.datetime.fromisoformat(expires[:-1] + "+00:00" if expires[-1:] in ("Z", "z") else expires)
+                if when.tzinfo is None: raise ValueError("no time zone")
+                if release and when <= datetime.datetime.now(datetime.timezone.utc):
+                    bad(f"{SECURITY}: Expires {expires} has passed; a released site must not publish an expired security.txt")
+            except ValueError:
+                bad(f"{SECURITY}: Expires is not a real RFC 3339 timestamp with a time zone: {expires!r}")
+        if CANONICAL + SECURITY not in canons: bad(f"{SECURITY}: one Canonical field must be {CANONICAL + SECURITY}")
+say(f"OK: {NOT_FOUND} carries the same style block and meta policy as {PAGE}; {ROBOTS} allows every crawler, as chosen; {SECURITY} well formed (expires {expires})")
 
 if FAIL == 0:
     say("verify.sh: ALL CHECKS PASS"); sys.exit(0)
