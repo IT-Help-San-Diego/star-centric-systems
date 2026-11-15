@@ -2,6 +2,13 @@
 
 Housekeeping changes to starcentric.systems: changes that alter nothing a reader can read or act on. A correction to what the page says is not housekeeping; it is entered in the family corrections index, and the page carries a dated line pointing at the entry. A fact printed with its read date that is brought up to date gets a new read date and a line here. Dates are UTC.
 
+## 15 November 2026, fourth deploy
+
+A fact printed with its read date changed. No entry in the corrections index: the earlier sentence was true on the day it was read.
+
+- Organic Computer took a license on 15 November 2026: its text is under CC BY 4.0 and no license is granted in its images. The plan paragraph of the roof section said it "carries no license yet, so re-use needs permission", from a reading on 7 November 2026. It now says the text carries Creative Commons attribution and no license is granted in the images, and the sources line gives that item its own read date, 15 November 2026.
+- Only `index.html` changed, in those two places. The style block and the response headers are unchanged.
+
 ## 15 November 2026, third deploy
 
 From `main` at 21c0dae. Not housekeeping, listed here so the deploys are in one place.
