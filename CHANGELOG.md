@@ -2,6 +2,11 @@
 
 Housekeeping changes to starcentric.systems: changes that alter nothing a reader can read or act on. A correction to what the page says is not housekeeping; it is entered in the family corrections index, and the page carries a dated line pointing at the entry. A fact printed with its read date that is brought up to date gets a new read date and a line here. Dates are UTC.
 
+## 23 November 2026, the DOI that resolves to the latest version
+
+- The Tetrasemaphore card linked both the concept DOI and the 1.0.0 version DOI (10.5281/zenodo.23575816). It now links the concept DOI alone, 10.5281/zenodo.23575814, labelled as the DOI of the latest version. In the sources list, the Zenodo record linked for the Tetrasemaphore is now the concept record, with 1.0.0's date kept in the parenthesis. The Lean proof link stays at tag v1.0.0, where the proof file is identical to the file at every later tag.
+- Only `index.html` changed, in those two places. The style block and the response headers are unchanged.
+
 ## 15 November 2026, fourth deploy
 
 A fact printed with its read date changed. No entry in the corrections index: the earlier sentence was true on the day it was read.
